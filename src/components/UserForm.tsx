@@ -1,46 +1,32 @@
 import { useState } from "react";
 import { User } from "../types/User";
 
+const INITIAL_FORM_DATA: Partial<User> = {
+  id: Date.now(),
+  name: "",
+  role: "student",
+  email: "",
+  age: 0,
+  postCode: "",
+  phone: "",
+  hobbies: [],
+  url: "",
+  taskCode: 0, // 生徒用
+  studyMinutes: 0,
+  studyLangs: [],
+  score: 0,
+  experienceDays: 0,
+  useLangs: [],
+  availableStartCode: 0, // メンター用
+  availableEndCode: 0, // メンター用
+};
+
 type UserFormProps = {
   onAddUser: (newUser: User) => void;
 };
 
 export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
-  const [role, setRole] = useState<"student" | "mentor">("student");
-
-  const [formData, setFormData] = useState<Partial<User>>({
-    id: Date.now(),
-    name: "",
-    role: "student",
-    email: "",
-    age: 0,
-    postCode: "",
-    phone: "",
-    hobbies: [],
-    url: "",
-    taskCode: 0, // 生徒用
-    studyMinutes: 0,
-    studyLangs: [],
-    score: 0,
-    experienceDays: 0,
-    useLangs: [],
-    availableStartCode: 0, // メンター用
-    availableEndCode: 0, // メンター用
-  });
-
-  // ロール変更時の処理
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newRole = e.target.value as "student" | "mentor";
-    setRole(newRole);
-
-    setFormData((prev) => ({
-      ...prev,
-      role: newRole,
-      ...(newRole === "student"
-        ? { taskCode: 0, studyMinutes: 0, studyLangs: [], score: 0, availableStartCode: undefined, availableEndCode: undefined }
-        : { availableStartCode: 0, availableEndCode: 0, experienceDays: 0, useLangs: [], taskCode: undefined }),
-    }));
-  };
+  const [formData, setFormData] = useState<Partial<User>>(INITIAL_FORM_DATA);
 
   // 入力値の変更を処理
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -49,14 +35,11 @@ export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
     setFormData((prev) => {
       const updatedData = {
         ...prev,
-        [name]: 
-          // 数値として扱う項目
+        [name]:
           ["age", "score", "studyMinutes", "experienceDays", "availableStartCode", "availableEndCode", "taskCode"].includes(name)
             ? Number(value)
-          // 配列（カンマ区切りで分割）
           : ["hobbies", "studyLangs", "useLangs"].includes(name)
             ? value.split(",").map((v) => v.trim())
-          // それ以外は文字列としてセット
           : value,
       };
 
@@ -73,41 +56,19 @@ export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
     }
 
     onAddUser(formData as User);
-
-    // 入力フォームをリセット
-    setFormData({
-      id: Date.now(),
-      name: "",
-      role,
-      email: "",
-      age: 0,
-      postCode: "",
-      phone: "",
-      hobbies: [],
-      url: "",
-      taskCode: role === "student" ? 0 : undefined, // 生徒のみ
-      studyMinutes: 0,
-      studyLangs: [],
-      score: 0,
-      experienceDays: 0,
-      useLangs: [],
-      availableStartCode: role === "mentor" ? 0 : undefined, // メンターのみ
-      availableEndCode: role === "mentor" ? 0 : undefined, // メンターのみ
-    });
+    setFormData({ ...INITIAL_FORM_DATA, id: Date.now(), role: formData.role });
   };
 
   return (
     <div className="mb-4 p-3 border rounded">
       <h2>新規ユーザー登録</h2>
 
-      {/* ロール選択 */}
       <label className="form-label">ロール</label>
-      <select name="role" className="form-select" value={role} onChange={handleRoleChange}>
+      <select name="role" className="form-select" value={formData.role} onChange={handleChange}>
         <option value="student">生徒</option>
         <option value="mentor">メンター</option>
       </select>
 
-      {/* 共通の入力項目 */}
       <label className="form-label">名前</label>
       <input type="text" className="form-control" name="name" value={formData.name} onChange={handleChange} />
 
@@ -129,8 +90,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
       <label className="form-label">URL</label>
       <input type="text" className="form-control" name="url" value={formData.url} onChange={handleChange} />
 
-      {/* 生徒用の入力フォーム */}
-      {role === "student" && (
+      {formData.role === "student" && (
         <>
           <label className="form-label">勉強時間 (分)</label>
           <input type="number" className="form-control" name="studyMinutes" value={formData.studyMinutes || ""} onChange={handleChange} />
@@ -143,12 +103,10 @@ export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
 
           <label className="form-label">課題番号</label>
           <input type="number" className="form-control" name="taskCode" value={formData.taskCode || ""} onChange={handleChange} />
-
         </>
       )}
 
-      {/* メンター用の入力フォーム */}
-      {role === "mentor" && (
+      {formData.role === "mentor" && (
         <>
           <label className="form-label">実務経験 (日数)</label>
           <input type="number" className="form-control" name="experienceDays" value={formData.experienceDays || ""} onChange={handleChange} />
