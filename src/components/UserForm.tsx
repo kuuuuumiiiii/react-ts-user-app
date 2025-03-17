@@ -1,8 +1,35 @@
 import { useState } from "react";
 import { User } from "../types/User";
 
-const INITIAL_FORM_DATA: Partial<User> = {
-  id: Date.now(),
+// UserFormData型を定義
+type UserFormData = {
+  id?: number;
+  name: string;
+  role: "student" | "mentor";
+  email: string;
+  age: number;
+  postCode: string;
+  phone: string;
+  hobbies: string[];
+  url: string;
+} & (
+  | {
+      role: "student";
+      studyMinutes: number;
+      taskCode: number;
+      studyLangs: string[];
+      score: number;
+    }
+  | {
+      role: "mentor";
+      experienceDays: number;
+      useLangs: string[];
+      availableStartCode: number;
+      availableEndCode: number;
+    }
+);
+
+const INITIAL_FORM_DATA: UserFormData = {
   name: "",
   role: "student",
   email: "",
@@ -11,14 +38,14 @@ const INITIAL_FORM_DATA: Partial<User> = {
   phone: "",
   hobbies: [],
   url: "",
-  taskCode: 0, // 生徒用
   studyMinutes: 0,
+  taskCode: 0,
   studyLangs: [],
   score: 0,
   experienceDays: 0,
   useLangs: [],
-  availableStartCode: 0, // メンター用
-  availableEndCode: 0, // メンター用
+  availableStartCode: 0,
+  availableEndCode: 0,
 };
 
 type UserFormProps = {
@@ -26,37 +53,59 @@ type UserFormProps = {
 };
 
 export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
-  const [formData, setFormData] = useState<Partial<User>>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<UserFormData>(INITIAL_FORM_DATA);
 
-  // 入力値の変更を処理
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     setFormData((prev) => {
       const updatedData = {
         ...prev,
-        [name]:
-          ["age", "score", "studyMinutes", "experienceDays", "availableStartCode", "availableEndCode", "taskCode"].includes(name)
-            ? Number(value)
+        [name]: ["age", "score", "studyMinutes", "experienceDays", "availableStartCode", "availableEndCode", "taskCode"].includes(name)
+          ? Number(value)
           : ["hobbies", "studyLangs", "useLangs"].includes(name)
-            ? value.split(",").map((v) => v.trim())
+          ? value.split(",").map((v) => v.trim())
           : value,
       };
 
       console.log("更新後のフォームデータ:", updatedData);
-      return updatedData;
+      return updatedData as UserFormData;
     });
   };
 
-  // ユーザーを追加
   const handleSubmit = () => {
     if (!formData.name || !formData.email || formData.age <= 0) {
       alert("すべての必須項目を入力してください！");
       return;
     }
 
-    onAddUser(formData as User);
-    setFormData({ ...INITIAL_FORM_DATA, id: Date.now(), role: formData.role });
+    const newUser: User = {
+      id: Date.now(),
+      name: formData.name,
+      role: formData.role,
+      email: formData.email,
+      age: formData.age,
+      postCode: formData.postCode,
+      phone: formData.phone,
+      hobbies: formData.hobbies,
+      url: formData.url,
+      ...(formData.role === "student"
+        ? {
+            studyMinutes: formData.studyMinutes,
+            taskCode: formData.taskCode,
+            studyLangs: formData.studyLangs,
+            score: formData.score,
+          }
+        : {
+            experienceDays: formData.experienceDays,
+            useLangs: formData.useLangs,
+            availableStartCode: formData.availableStartCode,
+            availableEndCode: formData.availableEndCode,
+          }),
+    };
+
+    onAddUser(newUser);
+    setFormData({ ...INITIAL_FORM_DATA, role: formData.role });
   };
 
   return (

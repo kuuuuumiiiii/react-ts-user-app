@@ -26,11 +26,20 @@ const App = () => {
   const filteredUsers = displayUsers.filter((user) => filterRole === "all" || user.role === filterRole);
 
   // 🔹 ソート処理の補助関数
-const getSortValue = (user: User, key: SortKey | null): number => {
-  // null合体演算子で null や undefined の場合にデフォルト値 0 を返す
-  return key ? (user[key] ?? 0) : 0;
-};
-
+  const getSortValue = (user: User, key: SortKey | null): number => {
+    if (!key) return 0;
+  
+    if (user.role === "student" && (key === "studyMinutes" || key === "score")) {
+      return user[key]; // student のプロパティにアクセス
+    }
+  
+    if (user.role === "mentor" && key === "experienceDays") {
+      return user[key]; // mentor のプロパティにアクセス
+    }
+  
+    return 0; // 該当しない場合のデフォルト値
+  };
+  
   // 🔹 ソート処理
   const sortedUsers = [...filteredUsers].sort((a, b) => {
     if (!sortKey) return 0; // ソートキーがない場合はそのまま
