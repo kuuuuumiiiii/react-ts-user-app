@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { User } from "../types/User";
 
-// UserFormData型を定義
 type UserFormData = {
-  id?: number;
   name: string;
   role: "student" | "mentor";
   email: string;
@@ -12,22 +10,15 @@ type UserFormData = {
   phone: string;
   hobbies: string[];
   url: string;
-} & (
-  | {
-      role: "student";
-      studyMinutes: number;
-      taskCode: number;
-      studyLangs: string[];
-      score: number;
-    }
-  | {
-      role: "mentor";
-      experienceDays: number;
-      useLangs: string[];
-      availableStartCode: number;
-      availableEndCode: number;
-    }
-);
+  studyMinutes: number;
+  taskCode: number;
+  studyLangs: string[];
+  score: number;
+  experienceDays: number;
+  useLangs: string[];
+  availableStartCode: number;
+  availableEndCode: number;
+};
 
 const INITIAL_FORM_DATA: UserFormData = {
   name: "",
@@ -81,27 +72,7 @@ export const UserForm: React.FC<UserFormProps> = ({ onAddUser }) => {
 
     const newUser: User = {
       id: Date.now(),
-      name: formData.name,
-      role: formData.role,
-      email: formData.email,
-      age: formData.age,
-      postCode: formData.postCode,
-      phone: formData.phone,
-      hobbies: formData.hobbies,
-      url: formData.url,
-      ...(formData.role === "student"
-        ? {
-            studyMinutes: formData.studyMinutes,
-            taskCode: formData.taskCode,
-            studyLangs: formData.studyLangs,
-            score: formData.score,
-          }
-        : {
-            experienceDays: formData.experienceDays,
-            useLangs: formData.useLangs,
-            availableStartCode: formData.availableStartCode,
-            availableEndCode: formData.availableEndCode,
-          }),
+      ...formData,
     };
 
     onAddUser(newUser);
